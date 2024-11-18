@@ -114,7 +114,7 @@ def register(update: Update, context):
         )
     else:
         # Send confirmation to the user
-        update.message.reply_text(
+        registration_message = update.message.reply_text(
             "Registration successful!\nNow /pay and send the payment screenshot to @Rizeol."
         )
         
@@ -134,14 +134,14 @@ def register(update: Update, context):
         )
         reply_markup = InlineKeyboardMarkup([[approve_button]])
         
-        # Send to log group
-        context.bot.send_message(
+        # Send to log group and keep the message id to reply later
+        log_message = context.bot.send_message(
             chat_id=LOG_GROUP_ID,
             text=log_text,
             reply_markup=reply_markup,
             parse_mode="Markdown",
         )
-        
+
         # Save to MongoDB with team structure
         team_data = {
             "user_id": user.id,
@@ -151,10 +151,11 @@ def register(update: Update, context):
             ],
             "mode": TOURNAMENT_MODE,
             "approved": False,
+            "registration_message_id": registration_message.message_id,  # Store message ID for later
+            "log_message_id": log_message.message_id  # Store log message ID to reply later
         }
         
         registrations.insert_one(team_data)
-
 
 # /check Command
 def check(update: Update, context):
@@ -263,6 +264,13 @@ def approve_registration(update: Update, context):
             text=f"✅ Registration approved for User ID: {user_id}"
         )
         
+        # Send a reply to the registration success message in the log
+        context.bot.send_message(
+            chat_id=LOG_GROUP_ID,
+            text="✅ Registration Approved!",
+            reply_to_message_id=registration["log_message_id"]  # Reply to the log message
+        )
+
         # Notify the user about approval
         try:
             context.bot.send_message(
@@ -273,6 +281,7 @@ def approve_registration(update: Update, context):
             logger.error(f"Failed to send approval message to {user_id}: {e}")
     else:
         query.edit_message_text("❌ Registration not found or already approved.")
+
 
 #clear command to wipe data from /check
 def clear(update: Update, context):
