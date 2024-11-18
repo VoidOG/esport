@@ -142,14 +142,19 @@ def register(update: Update, context):
             parse_mode="Markdown",
         )
         
-        # Save to MongoDB
-        registrations.insert_one({
+        # Save to MongoDB with team structure
+        team_data = {
             "user_id": user.id,
-            "name": user.full_name,
-            "text": message,
+            "team_name": message,  # Assuming team_name is the tournament name or message
+            "players": [
+                {"uid": user.id, "name": user.full_name}  # Adding the first player (user)
+            ],
             "mode": TOURNAMENT_MODE,
             "approved": False,
-        })
+        }
+        
+        registrations.insert_one(team_data)
+
 
 # /check Command
 def check(update: Update, context):
@@ -158,9 +163,14 @@ def check(update: Update, context):
         if approved_teams.count_documents({}) > 0:
             response = "Currently Registered Teams:\n\n"
             for team in approved:
-                response += f"Team Name: {team['team_name']}\nPlayers:\n"
-                for player in team['players']:
-                    response += f"- {player['uid']} ({player['name']})\n"
+                # Use .get() to avoid KeyError
+                team_name = team.get('team_name', 'Unknown')
+                response += f"Team Name: {team_name}\nPlayers:\n"
+                
+                players = team.get('players', [])
+                for player in players:
+                    response += f"- {player.get('uid', 'Unknown')} ({player.get('name', 'Unknown')})\n"
+                
                 response += "\n"
             update.message.reply_text(response)
         else:
@@ -214,14 +224,14 @@ def pay(update: Update, context):
     )
 
 # Approval Log Function
-def log_registration_approval(team, context):
-    team_name = team["team_name"]
-    players = team["players"]
+    def log_registration_approval(team, context):
+    team_name = team.get("team_name", "N/A")  # Use .get() to avoid KeyError
+    players = team.get("players", [])
     msg = f"New Registration Pending:\nTeam Name: {team_name}\n"
     
     # Add each player’s information to the log message
     for player in players:
-        msg += f"Player UID: {player['uid']}, In-Game Name: {player['name']}\n"
+        msg += f"Player UID: {player.get('uid', 'N/A')}, In-Game Name: {player.get('name', 'N/A')}\n"
     
     # Create an approval button for the team
     approve_button = InlineKeyboardButton("Approve", callback_data=f"approve_{team_name}")
@@ -234,6 +244,7 @@ def log_registration_approval(team, context):
         text=msg, 
         reply_markup=reply_markup
     )
+
 
 # Approve Registration Function
 def approve_registration(update: Update, context):
