@@ -44,9 +44,9 @@ def start(update: Update, context):
         reply_markup=reply_markup,
     )
 
-# /query Command - Directs users to @Cenzeo
+# /query Command - Directs users to @Rizeol
 def query(update: Update, context):
-    update.message.reply_text("For queries, please contact @Cenzeo.")
+    update.message.reply_text("For queries, please contact @Rizeol.")
 
 # /add Command
 def add(update: Update, context):
