@@ -101,22 +101,61 @@ def mode(update: Update, context):
 
 # /register Command
 def register(update: Update, context):
+    global TOURNAMENT_MODE
+    user = update.message.from_user
+    chat_id = update.message.chat_id
+    message = update.message.text
+
     if TOURNAMENT_MODE == "off":
         keyboard = [[InlineKeyboardButton("Updates", url="https://t.me/updates_channel")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text("Tournament registration is currently closed.", reply_markup=reply_markup)
-    elif TOURNAMENT_MODE == "solo":
-        update.message.reply_text("Enter your BGMI UID and In-Game Name (format: UID NAME).")
-        # Further implementation for collecting details goes here...
-    elif TOURNAMENT_MODE == "squad":
-        update.message.reply_text("Enter your Team Name, 4 Players' UIDs, and Names.")
-        # Further implementation for collecting details goes here...
+        update.message.reply_text(
+            "Tournament registration is currently closed.", reply_markup=reply_markup
+        )
+    else:
+        # Send confirmation to the user
+        update.message.reply_text(
+            "Registration successful!\nNow /pay and send the payment screenshot to @Rizeol."
+        )
+        
+        # Send details to the log group
+        mode_text = f"Tournament Mode: {TOURNAMENT_MODE.capitalize()}"
+        log_text = (
+            f"**New Tournament Registration**\n"
+            f"User: [{user.full_name}](tg://user?id={user.id})\n"
+            f"User ID: `{user.id}`\n"
+            f"Message: {message}\n"
+            f"{mode_text}\n"
+        )
+        
+        # Add an approval button
+        approve_button = InlineKeyboardButton(
+            "Approve", callback_data=f"approve_{user.id}"
+        )
+        reply_markup = InlineKeyboardMarkup([[approve_button]])
+        
+        # Send to log group
+        context.bot.send_message(
+            chat_id=LOG_GROUP_ID,
+            text=log_text,
+            reply_markup=reply_markup,
+            parse_mode="Markdown",
+        )
+        
+        # Save to MongoDB
+        registrations.insert_one({
+            "user_id": user.id,
+            "name": user.full_name,
+            "text": message,
+            "mode": TOURNAMENT_MODE,
+            "approved": False,
+        })
 
 # /check Command
 def check(update: Update, context):
     if update.message.from_user.id == OWNER_ID:
         approved = approved_teams.find()
-        if approved.count() > 0:
+        if approved_teams.count_documents({}) > 0:
             response = "Currently Registered Teams:\n\n"
             for team in approved:
                 response += f"Team Name: {team['team_name']}\nPlayers:\n"
@@ -199,26 +238,30 @@ def log_registration_approval(team, context):
 # Approve Registration Function
 def approve_registration(update: Update, context):
     query = update.callback_query
-    team_name = query.data.split("_")[1]
+    user_id = query.data.split("_")[1]
     
-    # Find the team and approve it
-    team = registrations.find_one({"team_name": team_name})
-    if team:
-        # Insert the team into the approved teams collection
-        approved_teams.insert_one(team)
-        # Remove the team from the unapproved registrations collection
-        registrations.delete_one({"team_name": team_name})
+    # Find the registration in MongoDB
+    registration = registrations.find_one({"user_id": int(user_id)})
+    if registration:
+        # Mark as approved
+        approved_teams.insert_one(registration)
+        registrations.delete_one({"user_id": int(user_id)})
 
-        query.answer()
-        
-        # Send a new message confirming the approval to the original message
-        context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text=f"Team {team_name} has been approved!"
+        # Notify in the log group
+        query.edit_message_text(
+            text=f"✅ Registration approved for User ID: {user_id}"
         )
         
-        # Log the approval to the log group with approval button
-        log_registration_approval(team, context)
+        # Notify the user about approval
+        try:
+            context.bot.send_message(
+                chat_id=int(user_id),
+                text="🎉 Your registration has been approved! Get ready to participate."
+            )
+        except Exception as e:
+            logger.error(f"Failed to send approval message to {user_id}: {e}")
+    else:
+        query.edit_message_text("❌ Registration not found or already approved.")
       
 
 # Main Function
