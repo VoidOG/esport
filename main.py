@@ -224,7 +224,7 @@ def pay(update: Update, context):
     )
 
 # Approval Log Function
-    def log_registration_approval(team, context):
+def log_registration_approval(team, context):
     team_name = team.get("team_name", "N/A")  # Use .get() to avoid KeyError
     players = team.get("players", [])
     msg = f"New Registration Pending:\nTeam Name: {team_name}\n"
