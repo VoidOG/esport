@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # MongoDB Setup
-client = pymongo.MongoClient("mongodb://localhost:27017/")
+client = pymongo.MongoClient("mongodb+srv://Cenzo:Cenzo123@cenzo.azbk1.mongodb.net/")
 db = client["esports_db"]
 registered_ids = db["registered_ids"]
 registrations = db["registrations"]
@@ -16,9 +16,9 @@ approved_teams = db["approved_teams"]
 stats = db["stats"]
 queries = db["queries"]
 
-OWNER_ID = 123456789  # Replace with your owner ID
-LOG_GROUP_ID = -123456789  # Replace with your log group ID
-BOT_TOKEN = "YOUR_BOT_TOKEN"  # Replace with your bot token
+OWNER_ID = 6663845789 # Replace with your owner ID
+LOG_GROUP_ID = -1002360512395  # Replace with your log group ID
+BOT_TOKEN = "7690782362:AAGX57kDAHcCoCs6xr1JqxoBg5TuPGDutjM"  # Replace with your bot token
 
 # Global Variables
 TOURNAMENT_MODE = "off"  # Default mode: off
