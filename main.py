@@ -182,7 +182,7 @@ def handle_team_details(update: Update, context):
         registrations.insert_one(team_data)
 
         # Clear the registration status
-        context.user_data['registration_status'] = None.
+        context.user_data['registration_status'] = None
 
 # /check Command
 def check(update: Update, context):
