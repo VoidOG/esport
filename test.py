@@ -16,7 +16,6 @@ approved_teams = db["approved_teams"]
 stats = db["stats"]
 queries = db["queries"]
 users_collection = db['users']
-users_collection = db['users']
 chats_collection = db['chats']
 
 # Logging Setup
