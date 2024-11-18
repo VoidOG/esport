@@ -344,8 +344,9 @@ def main():
     dp.add_handler(CommandHandler("broadcast", broadcast))
     dp.add_handler(CommandHandler("pay", pay))
     dp.add_handler(CommandHandler("query", query))
-    
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_team_details))
     dp.add_handler(CallbackQueryHandler(approve_registration, pattern="^approve_"))
+    dp.add_handler(CommandHandler("clear", clear))
 
     # Start the bot
     updater.start_polling()
