@@ -32,7 +32,7 @@ def start(update: Update, context):
         [InlineKeyboardButton("Support Chat", url="https://t.me/support_chat")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    image_url = "https://example.com/start-image.jpg"  # Replace with your image link
+    image_url = "https://i.ibb.co/NFXHprf/file-2404.jpg"  # Replace with your image link
     caption = (
         "Welcome to the eSports Tournament Bot!\n\n"
         "Use /register to register for tournaments and /query for queries."
