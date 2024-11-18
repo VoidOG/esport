@@ -16,14 +16,15 @@ approved_teams = db["approved_teams"]
 stats = db["stats"]
 queries = db["queries"]
 users_collection = db['users']
+users_collection = db['users']
 chats_collection = db['chats']
 
+# Logging Setup
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-
 logger = logging.getLogger(__name__)
 
-
+# MongoDB Functions
 def add_user(user_id: int) -> None:
     if not users_collection.find_one({"user_id": user_id}):
         users_collection.insert_one({"user_id": user_id})
@@ -40,8 +41,10 @@ def get_users_count() -> int:
 
 def get_chats_count() -> int:
     return chats_collection.count_documents({})
-  
-OWNER_ID = 6663845789 # Replace with your owner ID
+
+
+# Configuration
+OWNER_ID = 6663845789  # Replace with your owner ID
 LOG_GROUP_ID = -1002360512395  # Replace with your log group ID
 BOT_TOKEN = "7690782362:AAGX57kDAHcCoCs6xr1JqxoBg5TuPGDutjM"  # Replace with your bot token
 
@@ -49,25 +52,27 @@ BOT_TOKEN = "7690782362:AAGX57kDAHcCoCs6xr1JqxoBg5TuPGDutjM"  # Replace with you
 TOURNAMENT_MODE = "off"  # Default mode: off
 
 # Commands Implementation
-
 # /start Command
-def start(update: Update, context):
-  user = update.message.from_user
-  chat = update.message.chat
-  
-    # Add user and chat to MongoDB
-  add_user(user.id)
-  add_chat(chat.id)
-  message = f" <b>𝖭𝖾𝗐 𝖴𝗌𝖾𝗋 𝖲𝗍𝖺𝗋𝗍𝖾𝖽 𝗍𝗁𝖾 𝖻𝗈𝗍</b>\n"
-  message += f"𝖴𝗌𝖾𝗋: {mention_html(user.id, user.first_name)}\n"
-  message += f"𝖯𝗋𝗈𝖿𝗂𝗅𝖾: <a href='tg://user?id={user.id}'>𝖫𝗂𝗇𝗄</a>\n"
-  if chat.type != 'private':
-    message += f" Group: {chat.title} ({chat.id})"
-    if chat.username:
-      message += f" - <a href='https://t.me/{chat.username}'>Link</a>"
-      context.bot.send_message(LOGS_GROUP_ID, message, parse_mode='HTML')
+def start(update: Update, context: CallbackContext) -> None:
+    user = update.message.from_user
+    chat = update.message.chat
 
-bot_username = context.bot.get_me().username
+    # Add user and chat to MongoDB
+    add_user(user.id)
+    add_chat(chat.id)
+
+    # Log new user information
+    message = f"<b>𝖭𝖾𝗐 𝖴𝗌𝖾𝗋 𝖲𝗍𝖺𝗋𝗍𝖾𝖽 𝗍𝗁𝖾 𝖻𝗈𝗍</b>\n"
+    message += f"𝖴𝗌𝖾𝗋: {mention_html(user.id, user.first_name)}\n"
+    message += f"𝖯𝗋𝗈𝖿𝗂𝗅𝖾: <a href='tg://user?id={user.id}'>𝖫𝗂𝗇𝗄</a>\n"
+
+    if chat.type != 'private':
+        message += f"Group: {chat.title} ({chat.id})"
+        if chat.username:
+            message += f" - <a href='https://t.me/{chat.username}'>Link</a>"
+
+    # Send log message to log group
+    context.bot.send_message(LOG_GROUP_ID, message, parse_mode=ParseMode.HTML)
 keyboard = [
   [InlineKeyboardButton("𝖴𝗉𝖽𝖺𝗍𝖾𝗌", url="https://t.me/EsportsHorizon")],
   [InlineKeyboardButton("𝖰𝗎𝖾𝗋𝗒", url="https://t.me/Rizeol")],
@@ -397,6 +402,10 @@ def main():
     dp.add_handler(CallbackQueryHandler(approve_registration, pattern="^approve_"))
     dp.add_handler(CommandHandler("clear", clear))
     dp.add_handler(CommandHandler("stats", stats))
+    global bot_username
+    bot_username = updater.bot.get_me().username
+    logger.info(f"Bot username: {bot_username}")
+  
     # Start the bot
     updater.start_polling()
     updater.idle()
