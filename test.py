@@ -52,6 +52,24 @@ TOURNAMENT_MODE = "off"  # Default mode: off
 
 # /start Command
 def start(update: Update, context):
+  user = update.message.from_user
+    chat = update.message.chat
+  
+    # Add user and chat to MongoDB
+    add_user(user.id)
+    add_chat(chat.id)
+
+    message = f" <b>𝖭𝖾𝗐 𝖴𝗌𝖾𝗋 𝖲𝗍𝖺𝗋𝗍𝖾𝖽 𝗍𝗁𝖾 𝖻𝗈𝗍</b>\n"
+    message += f"𝖴𝗌𝖾𝗋: {mention_html(user.id, user.first_name)}\n"
+    message += f"𝖯𝗋𝗈𝖿𝗂𝗅𝖾: <a href='tg://user?id={user.id}'>𝖫𝗂𝗇𝗄</a>\n"
+    if chat.type != 'private':
+        message += f" Group: {chat.title} ({chat.id})"
+        if chat.username:
+            message += f" - <a href='https://t.me/{chat.username}'>Link</a>"
+    context.bot.send_message(LOGS_GROUP_ID, message, parse_mode='HTML')
+
+    bot_username = context.bot.get_me().username
+
     keyboard = [
         [InlineKeyboardButton("𝖴𝗉𝖽𝖺𝗍𝖾𝗌", url="https://t.me/EsportsHorizon")],
         [InlineKeyboardButton("𝖰𝗎𝖾𝗋𝗒", url="https://t.me/Rizeol")],
@@ -380,7 +398,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_team_details))
     dp.add_handler(CallbackQueryHandler(approve_registration, pattern="^approve_"))
     dp.add_handler(CommandHandler("clear", clear))
-
+    dp.add_handler(CommandHandler("stats", stats))
     # Start the bot
     updater.start_polling()
     updater.idle()
