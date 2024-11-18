@@ -273,6 +273,27 @@ def approve_registration(update: Update, context):
             logger.error(f"Failed to send approval message to {user_id}: {e}")
     else:
         query.edit_message_text("❌ Registration not found or already approved.")
+
+#clear command to wipe data from /check
+def clear(update: Update, context):
+    if update.message.from_user.id == OWNER_ID:
+        try:
+            # Clear all approved teams from the database
+            approved_teams.delete_many({})  # Delete all entries in the collection
+
+            # Send confirmation to the owner
+            update.message.reply_text("✅ All approved teams have been cleared.")
+            
+            # Optionally, notify the log group that data has been cleared
+            context.bot.send_message(
+                chat_id=LOG_GROUP_ID,
+                text="⚠️ All approved teams data has been wiped out by the owner."
+            )
+        except Exception as e:
+            update.message.reply_text(f"❌ Error occurred while clearing data: {str(e)}")
+            logger.error(f"Error clearing approved teams data: {e}")
+    else:
+        update.message.reply_text("❌ You are not authorized to use this command.")
       
 
 # Main Function
