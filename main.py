@@ -113,18 +113,45 @@ def register(update: Update, context):
             "Tournament registration is currently closed.", reply_markup=reply_markup
         )
     else:
-        # Send confirmation to the user
-        registration_message = update.message.reply_text(
-            "Registration successful!\nNow /pay and send the payment screenshot to @Rizeol."
+        # Prompt user for team details
+        update.message.reply_text(
+            "Please provide your team credentials in the following format:\n"
+            "Team name\n"
+            "Player's UID with in-game name (e.g. 1234567890 Horizon)"
         )
         
+        # Save the registration status temporarily for later use
+        context.user_data['registration_status'] = 'awaiting_credential_details'
+
+def handle_team_details(update: Update, context):
+    user = update.message.from_user
+    chat_id = update.message.chat_id
+    message = update.message.text
+
+    # Check if the user is providing the team details
+    if 'registration_status' in context.user_data and context.user_data['registration_status'] == 'awaiting_credential_details':
+        # Split the message into team name and players' UID with username
+        details = message.split("\n")
+        if len(details) < 2:
+            update.message.reply_text("Please provide both the team name and player details in the correct format.")
+            return
+
+        team_name = details[0].strip()
+        player_details = details[1].strip()
+
+        # Send confirmation to the user
+        update.message.reply_text(
+            "Registration successful!\nNow /pay and send the payment screenshot to @Rizeol."
+        )
+
         # Send details to the log group
         mode_text = f"Tournament Mode: {TOURNAMENT_MODE.capitalize()}"
         log_text = (
             f"**New Tournament Registration**\n"
             f"User: [{user.full_name}](tg://user?id={user.id})\n"
             f"User ID: `{user.id}`\n"
-            f"Message: {message}\n"
+            f"Team: {team_name}\n"
+            f"Player Details: {player_details}\n"
             f"{mode_text}\n"
         )
         
@@ -133,8 +160,8 @@ def register(update: Update, context):
             "Approve", callback_data=f"approve_{user.id}"
         )
         reply_markup = InlineKeyboardMarkup([[approve_button]])
-        
-        # Send to log group and keep the message id to reply later
+
+        # Send to log group and store the log message ID
         log_message = context.bot.send_message(
             chat_id=LOG_GROUP_ID,
             text=log_text,
@@ -142,20 +169,20 @@ def register(update: Update, context):
             parse_mode="Markdown",
         )
 
-        # Save to MongoDB with team structure
+        # Save registration data to MongoDB
         team_data = {
             "user_id": user.id,
-            "team_name": message,  # Assuming team_name is the tournament name or message
-            "players": [
-                {"uid": user.id, "name": user.full_name}  # Adding the first player (user)
-            ],
+            "team_name": team_name,
+            "player_details": player_details,
             "mode": TOURNAMENT_MODE,
             "approved": False,
-            "registration_message_id": registration_message.message_id,  # Store message ID for later
-            "log_message_id": log_message.message_id  # Store log message ID to reply later
+            "log_message_id": log_message.message_id,  # Store log message ID
         }
-        
+
         registrations.insert_one(team_data)
+
+        # Clear the registration status
+        context.user_data['registration_status'] = None.
 
 # /check Command
 def check(update: Update, context):
@@ -259,16 +286,11 @@ def approve_registration(update: Update, context):
         approved_teams.insert_one(registration)
         registrations.delete_one({"user_id": int(user_id)})
 
-        # Notify in the log group
-        query.edit_message_text(
-            text=f"✅ Registration approved for User ID: {user_id}"
-        )
-        
-        # Send a reply to the registration success message in the log
+        # Notify in the log group by replying to the original message
         context.bot.send_message(
             chat_id=LOG_GROUP_ID,
-            text="✅ Registration Approved!",
-            reply_to_message_id=registration["log_message_id"]  # Reply to the log message
+            text=f"✅ Registration approved for User ID: {user_id}",
+            reply_to_message_id=registration["log_message_id"]  # Reply to the original registration log message
         )
 
         # Notify the user about approval
@@ -280,7 +302,7 @@ def approve_registration(update: Update, context):
         except Exception as e:
             logger.error(f"Failed to send approval message to {user_id}: {e}")
     else:
-        query.edit_message_text("❌ Registration not found or already approved.")
+        query.edit_message_text("❌ Registration not found or already approved.") 
 
 
 #clear command to wipe data from /check
