@@ -53,7 +53,7 @@ TOURNAMENT_MODE = "off"  # Default mode: off
 # /start Command
 def start(update: Update, context):
   user = update.message.from_user
-    chat = update.message.chat
+  chat = update.message.chat
   
     # Add user and chat to MongoDB
     add_user(user.id)
