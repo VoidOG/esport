@@ -201,7 +201,7 @@ def check(update: Update, context):
             for team in approved:
                 # Use .get() to avoid KeyError
                 team_name = team.get('team_name', 'Unknown')
-                response += f"𝗧𝗲𝗮𝗺 𝗡𝗮𝗺𝗲: {team_name}\n𝗨𝘀𝗲𝗿:\n"
+                response += f"𝗧𝗲𝗮𝗺 𝗡𝗮𝗺𝗲: {team_name}\n"
                 
                 players = team.get('players', [])
                 for player in players:
