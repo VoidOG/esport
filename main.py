@@ -28,8 +28,8 @@ TOURNAMENT_MODE = "off"  # Default mode: off
 # /start Command
 def start(update: Update, context):
     keyboard = [
-        [InlineKeyboardButton("Updates", url="https://t.me/updates_channel")],
-        [InlineKeyboardButton("Support Chat", url="https://t.me/support_chat")],
+        [InlineKeyboardButton("Updates", url="https://t.me/EsportsHorizon")],
+        [InlineKeyboardButton("Query", url="https://t.me/Rizeol")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     image_url = "https://i.ibb.co/NFXHprf/file-2404.jpg"  # Replace with your image link
@@ -107,7 +107,7 @@ def register(update: Update, context):
     message = update.message.text
 
     if TOURNAMENT_MODE == "off":
-        keyboard = [[InlineKeyboardButton("Updates", url="https://t.me/updates_channel")]]
+        keyboard = [[InlineKeyboardButton("Updates", url="https://t.me/EsportsHorizon")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         update.message.reply_text(
             "Tournament registration is currently closed.", reply_markup=reply_markup
