@@ -251,7 +251,7 @@ def broadcast(update: Update, context):
 
 # /pay Command
 def pay(update: Update, context):
-    image_link = "https://i.ibb.co/LvwtRf1/file-2407.jpg"  # Replace with your payment QR code image link
+    image_link = "https://i.ibb.co/XtBnPVq/file-2430.jpg"  # Replace with your payment QR code image link
     caption = "𝖯𝗅𝖾𝖺𝗌𝖾 𝗌𝖾𝗇𝖽 𝗍𝗁𝖾 𝗉𝖺𝗒𝗆𝖾𝗇𝗍 𝗌𝖼𝗋𝖾𝖾𝗇𝗌𝗁𝗈𝗍 𝗍𝗈 @Rizeol 𝗐𝗂𝗍𝗁 𝗒𝗈𝗎𝗋 𝖡𝖦𝖬𝖨 𝖴𝖨𝖣 𝖺𝗇𝖽 𝖨𝗇-𝖦𝖺𝗆𝖾 𝖭𝖺𝗆𝖾 𝗍𝗈 𝗀𝖾𝗍 𝗒𝗈𝗎𝗋 𝗋𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽."
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
