@@ -49,6 +49,8 @@ def start(update: Update, context):
             caption=caption,
             reply_markup=reply_markup,
         )
+    else:
+        return
 
 # /query Command - Directs users to @Rizeol
 def query(update: Update, context):
