@@ -287,8 +287,9 @@ def log_registration_approval(team, context):
 
 # Approve Registration Function
 def approve_registration(update: Update, context):
-    query = update.callback_query
-    user_id = query.data.split("_")[1]
+    if update.message.from_user.id == OWNER_ID:
+        query = update.callback_query
+        user_id = query.data.split("_")[1]
     
     # Find the registration in MongoDB
     registration = registrations.find_one({"user_id": int(user_id)})
@@ -303,6 +304,8 @@ def approve_registration(update: Update, context):
             text=f"𝖱𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽 𝖿𝗈𝗋 𝖴𝗌𝖾𝗋 𝖨𝖣: {user_id}",
             reply_to_message_id=registration["log_message_id"]  # Reply to the original registration log message
         )
+    else:
+        update.message.reply_text("You are not authorized to use this command.")
 
         # Notify the user about approval
         try:
