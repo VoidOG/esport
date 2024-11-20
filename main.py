@@ -264,25 +264,25 @@ def pay(update: Update, context):
 
 # Approval Log Function
 def log_registration_approval(team, context):
-    team_name = team.get("team_name", "N/A")  # Use .get() to avoid KeyError
-    players = team.get("players", [])
-    msg = f"𝗡𝗲𝘄 𝗥𝗲𝗴𝗶𝘀𝘁𝗿𝗮𝘁𝗶𝗼𝗻 𝗣𝗲𝗻𝗱𝗶𝗻𝗴:\n𝗧𝗲𝗮𝗺 𝗡𝗮𝗺𝗲: {team_name}\n"
-    
-    # Add each player’s information to the log message
-    for player in players:
-        msg += f"Player UID: {player.get('uid', 'N/A')}, In-Game Name: {player.get('name', 'N/A')}\n"
-    
-    # Create an approval button for the team
-    approve_button = InlineKeyboardButton("𝖠𝗉𝗉𝗋𝗈𝗏𝖾", callback_data=f"approve_{team_name}")
-    keyboard = [[approve_button]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    # Send the log message to the log group with the approval button
-    context.bot.send_message(
-        chat_id=LOG_GROUP_ID, 
-        text=msg, 
-        reply_markup=reply_markup
-    )
+    if update.message.from_user.id == OWNER_ID:
+        team_name = team.get("team_name", "N/A")  # Use .get() to avoid KeyError
+        players = team.get("players", [])
+        msg = f"𝗡𝗲𝘄 𝗥𝗲𝗴𝗶𝘀𝘁𝗿𝗮𝘁𝗶𝗼𝗻 𝗣𝗲𝗻𝗱𝗶𝗻𝗴:\n𝗧𝗲𝗮𝗺 𝗡𝗮𝗺𝗲: {team_name}\n"
+        
+        for player in players:
+            msg += f"Player UID: {player.get('uid', 'N/A')}, In-Game Name: {player.get('name', 'N/A')}\n"
+            
+            approve_button = InlineKeyboardButton("𝖠𝗉𝗉𝗋𝗈𝗏𝖾", callback_data=f"approve_{team_name}")
+            keyboard = [[approve_button]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            context.bot.send_message(
+                chat_id=LOG_GROUP_ID, 
+                text=msg, 
+                reply_markup=reply_markup
+            )
+    else:
+        update.message.reply_text("You are not authorized to use this command.")
 
 
 # Approve Registration Function
@@ -290,33 +290,28 @@ def approve_registration(update: Update, context):
     if update.message.from_user.id == OWNER_ID:
         query = update.callback_query
         user_id = query.data.split("_")[1]
-    
-    # Find the registration in MongoDB
-    registration = registrations.find_one({"user_id": int(user_id)})
-    if registration:
-        # Mark as approved
-        approved_teams.insert_one(registration)
-        registrations.delete_one({"user_id": int(user_id)})
-
-        # Notify in the log group by replying to the original message
-        context.bot.send_message(
-            chat_id=LOG_GROUP_ID,
-            text=f"𝖱𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽 𝖿𝗈𝗋 𝖴𝗌𝖾𝗋 𝖨𝖣: {user_id}",
-            reply_to_message_id=registration["log_message_id"]  # Reply to the original registration log message
-        )
-    else:
-        update.message.reply_text("You are not authorized to use this command.")
-
-        # Notify the user about approval
-        try:
+        
+        registration = registrations.find_one({"user_id": int(user_id)})
+        if registration:
+            approved_teams.insert_one(registration)
+            registrations.delete_one({"user_id": int(user_id)})
+            
             context.bot.send_message(
-                chat_id=int(user_id),
-                text="𝖸𝗈𝗎𝗋 𝗋𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝗁𝖺𝗌 𝖻𝖾𝖾𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽! 𝖸𝗈𝗎'𝗅𝗅 𝗀𝖾𝗍 𝗒𝗈𝗎𝗋 𝗋𝗈𝗈𝗆 𝖼𝗋𝖾𝖽𝖾𝗇𝗍𝗂𝖺𝗅𝗌 𝖻𝖾𝖿𝗈𝗋𝖾 15 𝗆𝗂𝗇𝗎𝗍𝖾𝗌 𝖿𝗋𝗈𝗆 𝗍𝗁𝖾 𝗆𝖺𝗍𝖼𝗁 𝗍𝗂𝗆𝖾 𝖺𝗇𝖽 𝖺 𝗇𝗈𝗍𝗂𝖿𝗂𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗇𝖾 𝖽𝖺𝗒 𝖻𝖾𝖿𝗈𝗋𝖾 𝖻𝗒 𝗆𝖾."
+                chat_id=LOG_GROUP_ID,
+                text=f"𝖱𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽 𝖿𝗈𝗋 𝖴𝗌𝖾𝗋 𝖨𝖣: {user_id}",
+                reply_to_message_id=registration["log_message_id"]  # Reply to the original registration log message
             )
-        except Exception as e:
-            logger.error(f"Failed to send approval message to {user_id}: {e}")
         else:
-            query.edit_message_text("❌ Registration not found or already approved.") 
+            update.message.reply_text("You are not authorized to use this command.")
+            try:
+                context.bot.send_message(
+                    chat_id=int(user_id),
+                    text="𝖸𝗈𝗎𝗋 𝗋𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝗁𝖺𝗌 𝖻𝖾𝖾𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽! 𝖸𝗈𝗎'𝗅𝗅 𝗀𝖾𝗍 𝗒𝗈𝗎𝗋 𝗋𝗈𝗈𝗆 𝖼𝗋𝖾𝖽𝖾𝗇𝗍𝗂𝖺𝗅𝗌 𝖻𝖾𝖿𝗈𝗋𝖾 15 𝗆𝗂𝗇𝗎𝗍𝖾𝗌 𝖿𝗋𝗈𝗆 𝗍𝗁𝖾 𝗆𝖺𝗍𝖼𝗁 𝗍𝗂𝗆𝖾 𝖺𝗇𝖽 𝖺 𝗇𝗈𝗍𝗂𝖿𝗂𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗇𝖾 𝖽𝖺𝗒 𝖻𝖾𝖿𝗈𝗋𝖾 𝖻𝗒 𝗆𝖾."
+                )
+            except Exception as e:
+                logger.error(f"Failed to send approval message to {user_id}: {e}")
+            else:
+                query.edit_message_text("❌ Registration not found or already approved.") 
 
 
 #clear command to wipe data from /check
