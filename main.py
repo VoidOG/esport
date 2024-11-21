@@ -308,8 +308,8 @@ def approve_registration(update: Update, context):
         # Edit the original message to indicate approval
         context.bot.send_message(
             chat_id=LOG_GROUP_ID,
-            text=f"✅ Registration approved for: {user_id}"
-        reply_to_message_id=registration["log_message_id"]
+            text=f"✅ Registration approved for: {user_id}",
+            reply_to_message_id=registration["log_message_id"]
         )
         
         # Notify the team's contact
