@@ -320,9 +320,9 @@ def approve_registration(update: Update, context):
             )
         except Exception as e:
             logger.error(f"Failed to send approval message to {user_id}: {e}")
-        query.answer("✅ Registration approved.")
-    else:
-        query.answer("❌ Registration not found or already approved.", show_alert=True)
+            update.message.reply_text("✅ Registration approved.")
+        else:
+            update.message.reply_text("❌ Registration not found or already approved."
 
 
 #clear command to wipe data from /check
