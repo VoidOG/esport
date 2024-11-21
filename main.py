@@ -298,28 +298,28 @@ def approve_registration(update: Update, context):
 
     # Extract the team name from callback data
     team_name = query.data.split("_", 1)[1]
-    registration = registrations.find_one({"team_name": team_name})
+    registration = registrations.find_one({"user_id": int(user_id)})
 
     if registration:
         # Move the team from registrations to approved_teams
         approved_teams.insert_one(registration)
-        registrations.delete_one({"team_name": team_name})
+        registrations.delete_one({"user_id": int(user_id)})
         
         # Edit the original message to indicate approval
         context.bot.edit_message_text(
             chat_id=LOG_GROUP_ID,
             message_id=registration["log_message_id"],
-            text=f"✅ Registration approved for Team: {team_name}"
+            text=f"✅ Registration approved for: {user_id}"
         )
         
         # Notify the team's contact
         try:
             context.bot.send_message(
-                chat_id=int(registration["contact_id"]),
+                chat_id=int(user_id),
                 text="𝖸𝗈𝗎𝗋 𝗋𝖾𝗀𝗂𝗌𝗍𝗋𝖺𝗍𝗂𝗈𝗇 𝗁𝖺𝗌 𝖻𝖾𝖾𝗇 𝖺𝗉𝗉𝗋𝗈𝗏𝖾𝖽! 𝖸𝗈𝗎'𝗅𝗅 𝗀𝖾𝗍 𝗒𝗈𝗎𝗋 𝗋𝗈𝗈𝗆 𝖼𝗋𝖾𝖽𝖾𝗇𝗍𝗂𝖺𝗅𝗌 𝖻𝖾𝖿𝗈𝗋𝖾 15 𝗆𝗂𝗇𝗎𝗍𝖾𝗌 𝖿𝗋𝗈𝗆 𝗍𝗁𝖾 𝗆𝖺𝗍𝖼𝗁 𝗍𝗂𝗆𝖾 𝖺𝗇𝖽 𝖺 𝗇𝗈𝗍𝗂𝖿𝗂𝖼𝖺𝗍𝗂𝗈𝗇 𝗈𝗇𝖾 𝖽𝖺𝗒 𝖻𝖾𝖿𝗈𝗋𝖾 𝖻𝗒 𝗆𝖾."
             )
         except Exception as e:
-            logger.error(f"Failed to send approval message to {registration['contact_id']}: {e}")
+            logger.error(f"Failed to send approval message to {user_id}: {e}")
         query.answer("✅ Registration approved.")
     else:
         query.answer("❌ Registration not found or already approved.", show_alert=True)
