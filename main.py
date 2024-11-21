@@ -322,7 +322,7 @@ def approve_registration(update: Update, context):
             logger.error(f"Failed to send approval message to {user_id}: {e}")
             update.message.reply_text("✅ Registration approved.")
         else:
-            update.message.reply_text("❌ Registration not found or already approved."
+            update.message.reply_text("❌ Registration not found or already approved.")
 
 
 #clear command to wipe data from /check
